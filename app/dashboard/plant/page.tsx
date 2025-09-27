@@ -1,10 +1,9 @@
 'use client';
 import PlantCard from '@/components/PlantCard';
-import { Button } from '@/components/ui/button';
+import PlantFormModal from '@/components/PlantFormModal';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/authStore';
 import { usePlantStore } from '@/store/PlantStore';
-import { PlusCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function Plant() {
@@ -36,10 +35,7 @@ export default function Plant() {
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
 				/>
-				<Button>
-					<PlusCircle className="mr-2" />
-					New Planter
-				</Button>
+				<PlantFormModal triggerLabel="New Planter" />
 			</div>
 
 			{loading && <p>Loading plants...</p>}

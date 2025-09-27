@@ -9,20 +9,12 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-	Droplet,
-	Calendar,
-	Leaf,
-	Trash2,
-	PlusCircle,
-	Clock,
-} from 'lucide-react';
+import { Droplet, Calendar, Leaf, Trash2, Clock, Edit2 } from 'lucide-react';
 import { useState } from 'react';
-import {
-	PlantResponse,
-	WateringHistoryResponse,
-	WateringNeedResponse,
-} from '@/types/orther';
+import { PlantResponse, WateringHistoryRequest } from '@/types/orther';
+import CreateWateringNeedModal from './WateringNeedFormModal';
+import { useWateringHistoryStore } from '@/store/WateringHistory';
+import WaterPlantModal from './WaterPlantModal';
 
 const formatDate = (dateString: string) => {
 	return new Date(dateString).toLocaleDateString('en-US', {
@@ -32,20 +24,20 @@ const formatDate = (dateString: string) => {
 };
 
 export default function PlantCardDetail({ plant }: { plant: PlantResponse }) {
-	const [wateringNeeds, setWateringNeeds] = useState<WateringNeedResponse[]>(
-		plant.wateringNeeds
-	);
-
-	const [wateringHistories, setWateringHistories] = useState<
-		WateringHistoryResponse[]
-	>(plant.wateringHistories);
+	const { createHistory } = useWateringHistoryStore();
+	const [wateringH, setWateringH] = useState<WateringHistoryRequest>({
+		wateringDate: '',
+		notes: '',
+	});
 
 	// --- handlers ---
 	const handleAddNeed = () => {};
 
 	const handleDeleteNeed = (id: number) => {};
 
-	const handleAddHistory = () => {};
+	const handleAddHistory = async () => {
+		await createHistory(plant.id, wateringH);
+	};
 
 	const handleDeleteHistory = (id: number) => {};
 
@@ -55,7 +47,7 @@ export default function PlantCardDetail({ plant }: { plant: PlantResponse }) {
 				<Button variant="outline">Detail</Button>
 			</DialogTrigger>
 
-			<DialogContent className="max-w-2xl">
+			<DialogContent className="max-w-4xl">
 				<DialogHeader>
 					<DialogTitle>{plant.name}</DialogTitle>
 					<DialogDescription>
@@ -67,7 +59,7 @@ export default function PlantCardDetail({ plant }: { plant: PlantResponse }) {
 					{/* Image + Infos principales */}
 					<div>
 						<img
-							src={plant.imageUrl || '/api/placeholder/600/400'}
+							src={'/cover-image.jpg'}
 							alt={plant.name}
 							width={600}
 							height={400}
@@ -99,44 +91,39 @@ export default function PlantCardDetail({ plant }: { plant: PlantResponse }) {
 								<Clock className="text-primary" size={18} />
 								Watering Needs
 							</h3>
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={handleAddNeed}
-							>
-								<PlusCircle size={16} className="mr-1" />
-								Add
-							</Button>
+							<CreateWateringNeedModal plantId={plant.id} />
 						</div>
 						<div className="mt-2 space-y-2">
-							{wateringNeeds.length === 0 && (
-								<p className="text-gray-400 text-sm">
-									No watering needs defined
-								</p>
-							)}
-							{wateringNeeds.map((need) => (
-								<div
-									key={need.id}
-									className="flex justify-between items-center border rounded-md p-2 text-sm"
-								>
-									<span>
-										Every {need.frequencyInDays} days —{' '}
-										{need.quantityInLiters} ml
-									</span>
-									<Button
-										size="icon"
-										variant="ghost"
-										onClick={() =>
-											handleDeleteNeed(need.id)
-										}
+							{plant.wateringNeeds &&
+								plant.wateringNeeds.length === 0 && (
+									<p className="text-gray-400 text-sm">
+										No watering needs defined
+									</p>
+								)}
+							{plant.wateringNeeds &&
+								plant.wateringNeeds.map((need) => (
+									<div
+										key={need.id}
+										className="flex justify-between items-center border rounded-md p-2 text-sm"
 									>
-										<Trash2
-											size={16}
-											className="text-red-500"
-										/>
-									</Button>
-								</div>
-							))}
+										<span>
+											Every {need.frequencyInDays} days —{' '}
+											{need.quantityInLiters} ml
+										</span>
+										<Button
+											size="icon"
+											variant="ghost"
+											onClick={() =>
+												handleDeleteNeed(need.id)
+											}
+										>
+											<Trash2
+												size={16}
+												className="text-red-500"
+											/>
+										</Button>
+									</div>
+								))}
 						</div>
 					</div>
 
@@ -147,55 +134,49 @@ export default function PlantCardDetail({ plant }: { plant: PlantResponse }) {
 								<Droplet className="text-blue-600" size={18} />
 								Watering History
 							</h3>
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={handleAddHistory}
-							>
-								<PlusCircle size={16} className="mr-1" />
-								Add
-							</Button>
 						</div>
 						<div className="mt-2 space-y-2">
-							{wateringHistories.length === 0 && (
-								<p className="text-gray-400 text-sm">
-									No watering history yet
-								</p>
-							)}
-							{wateringHistories.map((history) => (
-								<div
-									key={history.id}
-									className="flex justify-between items-center border rounded-md p-2 text-sm"
-								>
-									<span>
-										{formatDate(history.wateringDate)} —{' '}
-										{history.notes || 'No notes'}
-									</span>
-									<Button
-										size="icon"
-										variant="ghost"
-										onClick={() =>
-											handleDeleteHistory(history.id)
-										}
+							{plant.wateringHistories &&
+								plant.wateringHistories.length === 0 && (
+									<p className="text-gray-400 text-sm">
+										No watering history yet
+									</p>
+								)}
+							{plant.wateringHistories &&
+								plant.wateringHistories.map((history) => (
+									<div
+										key={history.id}
+										className="flex justify-between items-center border rounded-md p-2 text-sm"
 									>
-										<Trash2
-											size={16}
-											className="text-red-500"
-										/>
-									</Button>
-								</div>
-							))}
+										<span>
+											{formatDate(history.wateringDate)} —{' '}
+											{history.notes || 'No notes'}
+										</span>
+										<Button
+											size="icon"
+											variant="ghost"
+											onClick={() =>
+												handleDeleteHistory(history.id)
+											}
+										>
+											<Trash2
+												size={16}
+												className="text-red-500"
+											/>
+										</Button>
+									</div>
+								))}
 						</div>
 					</div>
 
 					{/* Actions */}
 					<div className="flex gap-2 pt-2">
 						<Button variant="outline" className="flex-1">
+							<Edit2 />
 							Edit
 						</Button>
-						<Button className="flex-1 flex items-center gap-1 bg-primary ">
-							<Droplet size={16} /> Water Now
-						</Button>
+
+						<WaterPlantModal plant={plant} />
 					</div>
 				</div>
 			</DialogContent>
